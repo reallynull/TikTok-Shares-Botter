@@ -2,9 +2,27 @@ from time import strftime, gmtime, time, sleep
 import os
 import random
 import threading
-
+import json
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
+session = requests.Session()
+retry = Retry(connect=3, backoff_factor=0.5)
+adapter = HTTPAdapter(max_retries=retry)
+session.mount('http://', adapter)
+session.mount('https://', adapter)
+
+url = 'https://api.getproxylist.com/proxy?port[]=80&port[]=8080&anonymity[]=anonymous&protocol[]=http'
+r = session.get(url)
+
+
+data = r.json()
+proxies = data = json.load(f)
+
+
+# Read file from GET request, then transfer into JSON file with IQ:PORT,
+# then read and replace file every 10 minutes for fresh proxies.
 
 class TikTok:
     def __init__(self):
@@ -92,7 +110,7 @@ class TikTok:
         try:
             response = requests.post(
                 'https://api16-core-c-useast1a.tiktokv.com/aweme/v1/aweme/stats/?ac=WIFI&op_region='
-                'SE&app_skin=white&', data=data, headers=headers
+                'SE&app_skin=white&', data=data, headers=headers, proxies=proxies
             )
         except Exception as e:
             print(f'Error: {e}')
